@@ -1,3 +1,5 @@
+-- search all tables in all databases
+-- create detailed and summary views
 IF OBJECT_ID('tempdb..#TableNames') IS NOT NULL
     DROP TABLE #TableNames
 
@@ -5,13 +7,17 @@ IF OBJECT_ID('tempdb..#TempResult') IS NOT NULL
     DROP TABLE #TempResult
 
 CREATE TABLE #TableNames (TableName NVARCHAR(128))
+DECLARE @columnFilter NVARCHAR(MAX)
+DECLARE @columnFilter2 NVARCHAR(MAX)
+DECLARE @columnFilter3 NVARCHAR(MAX)
+
 
 INSERT INTO #TableNames (TableName)
 VALUES ('%PostAwardConditionTracking%'), ('%GrantTermActuals%'), ('%Term%'), ('%Condition%')
 
-DECLARE @columnFilter NVARCHAR(MAX)
-SET @columnFilter = '%Term%'
-
+SET @columnFilter = '%TermId%'
+SET @columnFilter2 = '%Condtion%'
+SET @columnFilter3 = '%grantid%'
 
 CREATE TABLE #TempResult
 (
@@ -77,7 +83,7 @@ SELECT * FROM #TempResult
   GROUP BY DATABASE_NAME, SCHEMA_NAME, OBJECT_NAME
 )
 SELECT * FROM CTE
-WHERE Indexed_Foreign_Key_Columns LIKE @columnFilter
+WHERE (Indexed_Foreign_Key_Columns LIKE @columnFilter OR Indexed_Foreign_Key_Columns LIKE @columnFilter2 OR Indexed_Foreign_Key_Columns LIKE @columnFilter3)
 
 IF OBJECT_ID('tempdb..#TempResult') IS NOT NULL
     DROP TABLE #TempResult
