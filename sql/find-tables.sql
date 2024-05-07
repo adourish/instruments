@@ -2,7 +2,7 @@
 CREATE TABLE #TableNames (TableName NVARCHAR(128))
 
 INSERT INTO #TableNames (TableName)
-VALUES ('%ESV_SiteVisitReportTermActual_P%'), ('%AnotherTable%'), ('%ThirdTable%')
+VALUES ('%PostAwardConditionTracking%'), ('%GrantTermActuals%'), ('%ThirdTable%')
 
 CREATE TABLE #TempResult
 (
