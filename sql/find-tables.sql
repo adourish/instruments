@@ -16,7 +16,6 @@ CREATE TABLE #TempResult
     DATA_TYPE NVARCHAR(MAX),
     IS_NULLABLE BIT,
     INDEX_NAME NVARCHAR(MAX),
-    COLUMN_DESCRIPTION NVARCHAR(MAX),
     FOREIGN_KEY_NAME NVARCHAR(MAX)
 )
 
@@ -25,7 +24,7 @@ USE [?];
 IF DB_ID(''?'') > 4
 BEGIN
     INSERT INTO #TempResult
-        SELECT 
+        SELECT DISTINCT
             ''?'' AS DATABASE_NAME,
             s.name AS SCHEMA_NAME,
             o.name AS OBJECT_NAME,            
@@ -34,7 +33,6 @@ BEGIN
             tp.name AS DATA_TYPE,
             c.is_nullable,
             ind.name AS INDEX_NAME,
-			CONVERT(NVARCHAR(MAX), ep.value) AS COLUMN_DESCRIPTION,
 			CONVERT(NVARCHAR(MAX), fk.name) AS FOREIGN_KEY_NAME
         FROM 
             sys.objects o
