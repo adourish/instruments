@@ -1,10 +1,17 @@
 IF OBJECT_ID('tempdb..#TableNames') IS NOT NULL
     DROP TABLE #TableNames
 
+IF OBJECT_ID('tempdb..#TempResult') IS NOT NULL
+    DROP TABLE #TempResult
+
 CREATE TABLE #TableNames (TableName NVARCHAR(128))
 
 INSERT INTO #TableNames (TableName)
 VALUES ('%PostAwardConditionTracking%'), ('%GrantTermActuals%'), ('%Term%'), ('%Condition%')
+
+DECLARE @columnFilter NVARCHAR(MAX)
+SET @columnFilter = '%Term%'
+
 
 CREATE TABLE #TempResult
 (
@@ -61,11 +68,16 @@ END
 
 SELECT * FROM #TempResult
 
-SELECT DATABASE_NAME, SCHEMA_NAME, OBJECT_NAME, 
-STRING_AGG(COLUMN_NAME, ', ') AS Indexed_Foreign_Key_Columns
-FROM #TempResult
-WHERE INDEX_NAME IS NOT NULL OR FOREIGN_KEY_NAME IS NOT NULL
-GROUP BY DATABASE_NAME, SCHEMA_NAME, OBJECT_NAME
+;WITH CTE AS 
+(
+  SELECT DATABASE_NAME, SCHEMA_NAME, OBJECT_NAME, 
+  STRING_AGG(OBJECT_TYPE, ', ') AS Indexed_Foreign_Key_Columns
+  FROM #TempResult
+  WHERE (INDEX_NAME IS NOT NULL OR FOREIGN_KEY_NAME IS NOT NULL)
+  GROUP BY DATABASE_NAME, SCHEMA_NAME, OBJECT_NAME
+)
+SELECT * FROM CTE
+WHERE Indexed_Foreign_Key_Columns LIKE @columnFilter
 
 IF OBJECT_ID('tempdb..#TempResult') IS NOT NULL
     DROP TABLE #TempResult
