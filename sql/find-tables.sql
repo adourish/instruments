@@ -13,9 +13,9 @@ DECLARE @columnFilter3 NVARCHAR(MAX)
 
 
 INSERT INTO #TableNames (TableName)
-VALUES ('%PostAwardConditionTracking%'), ('%GrantTermActuals%'), ('%Term%'), ('%Condition%')
+VALUES ('%Term%'), ('%Conditions%')
 
-SET @columnFilter = '%TermId%'
+SET @columnFilter = '%Term%'
 SET @columnFilter2 = '%Condtion%'
 SET @columnFilter3 = '%grantid%'
 
@@ -78,7 +78,7 @@ SELECT * FROM #TempResult
 (
   SELECT DATABASE_NAME, SCHEMA_NAME, OBJECT_NAME, 
   STRING_AGG(OBJECT_TYPE, ', ') AS Indexed_Foreign_Key_Columns,
-  'SELECT * FROM [' + DATABASE_NAME + '].[' + SCHEMA_NAME + '].[' + OBJECT_NAME + ']' AS SelectStar
+  'SELECT top 5 * FROM [' + DATABASE_NAME + '].[' + SCHEMA_NAME + '].[' + OBJECT_NAME + ']' AS SelectStar
   FROM #TempResult
   WHERE (INDEX_NAME IS NOT NULL OR FOREIGN_KEY_NAME IS NOT NULL)
   GROUP BY DATABASE_NAME, SCHEMA_NAME, OBJECT_NAME
