@@ -10,15 +10,15 @@ CREATE TABLE #TableNames (TableName NVARCHAR(128))
 DECLARE @columnFilter NVARCHAR(MAX)
 DECLARE @columnFilter2 NVARCHAR(MAX)
 DECLARE @columnFilter3 NVARCHAR(MAX)
-
+DECLARE @columnFilter4 NVARCHAR(MAX)
 
 INSERT INTO #TableNames (TableName)
 VALUES ('%Term%'), ('%Conditions%')
 
 SET @columnFilter = '%Term%'
-SET @columnFilter2 = '%Condtion%'
+SET @columnFilter2 = '%Condition%'
 SET @columnFilter3 = '%grantid%'
-
+SET @columnFilter4 = '%grantid%'
 CREATE TABLE #TempResult
 (
     DATABASE_NAME NVARCHAR(MAX),
@@ -80,11 +80,19 @@ SELECT * FROM #TempResult
   STRING_AGG(OBJECT_TYPE, ', ') AS Indexed_Foreign_Key_Columns,
   'SELECT top 5 * FROM [' + DATABASE_NAME + '].[' + SCHEMA_NAME + '].[' + OBJECT_NAME + ']' AS SelectStar
   FROM #TempResult
-  WHERE (INDEX_NAME IS NOT NULL OR FOREIGN_KEY_NAME IS NOT NULL)
+  WHERE (INDEX_NAME IS NOT NULL OR 
+  FOREIGN_KEY_NAME IS NOT NULL OR
+  (OBJECT_TYPE LIKE @columnFilter OR
+  OBJECT_TYPE LIKE @columnFilter2 OR
+  OBJECT_TYPE LIKE @columnFilter3 OR
+  OBJECT_TYPE LIKE @columnFilter4))
   GROUP BY DATABASE_NAME, SCHEMA_NAME, OBJECT_NAME
 )
 SELECT * FROM CTE
-WHERE (Indexed_Foreign_Key_Columns LIKE @columnFilter OR Indexed_Foreign_Key_Columns LIKE @columnFilter2 OR Indexed_Foreign_Key_Columns LIKE @columnFilter3)
+WHERE (Indexed_Foreign_Key_Columns LIKE @columnFilter OR 
+Indexed_Foreign_Key_Columns LIKE @columnFilter2 OR 
+Indexed_Foreign_Key_Columns LIKE @columnFilter3 OR
+Indexed_Foreign_Key_Columns LIKE @columnFilter4)
 
 IF OBJECT_ID('tempdb..#TempResult') IS NOT NULL
     DROP TABLE #TempResult
