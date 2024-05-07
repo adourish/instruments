@@ -28,14 +28,14 @@ BEGIN
         SELECT 
             ''?'' AS DATABASE_NAME,
             s.name AS SCHEMA_NAME,
-            o.name AS OBJECT_NAME,
-            o.type_desc AS OBJECT_TYPE,
+            o.name AS OBJECT_NAME,            
             c.name AS COLUMN_NAME,
+			o.type_desc AS OBJECT_TYPE,
             tp.name AS DATA_TYPE,
             c.is_nullable,
             ind.name AS INDEX_NAME,
-	    CONVERT(NVARCHAR(MAX), ep.value) AS COLUMN_DESCRIPTION,
-	    CONVERT(NVARCHAR(MAX), fk.name) AS FOREIGN_KEY_NAME
+			CONVERT(NVARCHAR(MAX), ep.value) AS COLUMN_DESCRIPTION,
+			CONVERT(NVARCHAR(MAX), fk.name) AS FOREIGN_KEY_NAME
         FROM 
             sys.objects o
         INNER JOIN 
