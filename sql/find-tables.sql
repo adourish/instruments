@@ -13,12 +13,13 @@ DECLARE @columnFilter3 NVARCHAR(MAX)
 DECLARE @columnFilter4 NVARCHAR(MAX)
 
 INSERT INTO #TableNames (TableName)
-VALUES ('%Term%'), ('%Conditions%')
+VALUES ('%Term%'), ('%Conditions%'), ('%awards%')
 
 SET @columnFilter = '%Term%'
 SET @columnFilter2 = '%Condition%'
 SET @columnFilter3 = '%grantid%'
 SET @columnFilter4 = '%grantid%'
+
 CREATE TABLE #TempResult
 (
     DATABASE_NAME NVARCHAR(MAX),
@@ -68,7 +69,23 @@ BEGIN
         INNER JOIN
             #TableNames tn ON o.name LIKE tn.TableName
         WHERE 
-            o.type IN (''U'', ''V'') 
+            o.type IN (''U'', ''V'', ''F'', ''P'') 
+
+	INSERT INTO #TempResult (DATABASE_NAME, SCHEMA_NAME, OBJECT_TYPE, FOREIGN_KEY_NAME, OBJECT_NAME, COLUMN_NAME, DATA_TYPE)
+    SELECT DISTINCT
+        DB_NAME() as DATABASE_NAME,
+		''NA'' as SCHEMA_NAME,
+		''NA'' as OBJECT_TYPE,
+		''NA'' as FOREIGN_KEY_NAME,
+        r.ROUTINE_NAME as OBJECT_NAME,
+        r.ROUTINE_TYPE as COLUMN_NAME,
+        r.ROUTINE_DEFINITION as INDEX_NAME
+    FROM 
+        INFORMATION_SCHEMA.ROUTINES r
+		INNER JOIN
+            #TableNames tn ON r.ROUTINE_DEFINITION LIKE tn.TableName
+
+
 END
 '
 
@@ -76,23 +93,23 @@ SELECT * FROM #TempResult
 
 ;WITH CTE AS 
 (
-  SELECT DATABASE_NAME, SCHEMA_NAME, OBJECT_NAME, 
+  SELECT DATABASE_NAME, SCHEMA_NAME, OBJECT_NAME, COLUMN_NAME,
   STRING_AGG(OBJECT_TYPE, ', ') AS Indexed_Foreign_Key_Columns,
   'SELECT top 5 * FROM [' + DATABASE_NAME + '].[' + SCHEMA_NAME + '].[' + OBJECT_NAME + ']' AS SelectStar
   FROM #TempResult
   WHERE (INDEX_NAME IS NOT NULL OR 
   FOREIGN_KEY_NAME IS NOT NULL OR
-  (OBJECT_TYPE LIKE @columnFilter OR
-  OBJECT_TYPE LIKE @columnFilter2 OR
-  OBJECT_TYPE LIKE @columnFilter3 OR
-  OBJECT_TYPE LIKE @columnFilter4))
-  GROUP BY DATABASE_NAME, SCHEMA_NAME, OBJECT_NAME
+  (OBJECT_TYPE LIKE @columnFilter  OR
+  OBJECT_TYPE LIKE @columnFilter2  OR
+  OBJECT_TYPE LIKE  @columnFilter3  OR
+  OBJECT_TYPE LIKE @columnFilter4 ))
+  GROUP BY DATABASE_NAME, SCHEMA_NAME, OBJECT_NAME, COLUMN_NAME
 )
 SELECT * FROM CTE
-WHERE (Indexed_Foreign_Key_Columns LIKE @columnFilter OR 
-Indexed_Foreign_Key_Columns LIKE @columnFilter2 OR 
-Indexed_Foreign_Key_Columns LIKE @columnFilter3 OR
-Indexed_Foreign_Key_Columns LIKE @columnFilter4)
+WHERE (Indexed_Foreign_Key_Columns LIKE  @columnFilter  OR 
+Indexed_Foreign_Key_Columns LIKE @columnFilter2  OR 
+Indexed_Foreign_Key_Columns LIKE  @columnFilter3 OR
+Indexed_Foreign_Key_Columns LIKE  @columnFilter4 )
 
 IF OBJECT_ID('tempdb..#TempResult') IS NOT NULL
     DROP TABLE #TempResult
