@@ -1,19 +1,22 @@
--- Tool to loop through all known databases in a connection and find matching table names
+IF OBJECT_ID('tempdb..#TableNames') IS NOT NULL
+    DROP TABLE #TableNames
+
 CREATE TABLE #TableNames (TableName NVARCHAR(128))
 
 INSERT INTO #TableNames (TableName)
-VALUES ('%PostAwardConditionTracking%'), ('%GrantTermActuals%'), ('%ThirdTable%')
+VALUES ('%PostAwardConditionTracking%'), ('%GrantTermActuals%'), ('%LAL_TermActuals_P%')
 
 CREATE TABLE #TempResult
 (
-    DATABASE_NAME NVARCHAR(128),
-    TABLE_NAME NVARCHAR(128),
-    COLUMN_NAME NVARCHAR(128),
-    DATA_TYPE NVARCHAR(60),
+    DATABASE_NAME NVARCHAR(MAX),
+    SCHEMA_NAME NVARCHAR(MAX),
+    TABLE_NAME NVARCHAR(MAX),
+    COLUMN_NAME NVARCHAR(MAX),
+    DATA_TYPE NVARCHAR(MAX),
     IS_NULLABLE BIT,
-    INDEX_NAME NVARCHAR(128),
+    INDEX_NAME NVARCHAR(MAX),
     COLUMN_DESCRIPTION NVARCHAR(MAX),
-    FOREIGN_KEY_NAME NVARCHAR(128)
+    FOREIGN_KEY_NAME NVARCHAR(MAX)
 )
 
 EXEC sp_MSforeachdb '
@@ -23,6 +26,7 @@ BEGIN
     INSERT INTO #TempResult
         SELECT 
             ''?'' AS DATABASE_NAME,
+            s.name AS SCHEMA_NAME,
             t.name AS TABLE_NAME,
             c.name AS COLUMN_NAME,
             tp.name AS DATA_TYPE,
@@ -46,6 +50,8 @@ BEGIN
             sys.foreign_key_columns fkc ON fkc.parent_object_id = t.object_id AND fkc.parent_column_id = c.column_id
         LEFT JOIN 
             sys.foreign_keys fk ON fk.object_id = fkc.constraint_object_id
+        INNER JOIN 
+            sys.schemas s ON t.schema_id = s.schema_id
         INNER JOIN
             #TableNames tn ON t.name LIKE tn.TableName
 END
@@ -53,5 +59,8 @@ END
 
 SELECT * FROM #TempResult
 
-DROP TABLE #TempResult
-DROP TABLE #TableNames
+IF OBJECT_ID('tempdb..#TempResult') IS NOT NULL
+    DROP TABLE #TempResult
+
+IF OBJECT_ID('tempdb..#TableNames') IS NOT NULL
+    DROP TABLE #TableNames
