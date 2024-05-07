@@ -13,7 +13,7 @@ DECLARE @columnFilter3 NVARCHAR(MAX)
 DECLARE @columnFilter4 NVARCHAR(MAX)
 
 INSERT INTO #TableNames (TableName)
-VALUES ('%Term%'), ('%Conditions%'), ('%awards%')
+VALUES ('%Term%'), ('%Conditions%')
 
 SET @columnFilter = '%Term%'
 SET @columnFilter2 = '%Condition%'
@@ -69,7 +69,7 @@ BEGIN
         INNER JOIN
             #TableNames tn ON o.name LIKE tn.TableName
         WHERE 
-            o.type IN (''U'', ''V'', ''F'', ''P'') 
+            o.type IN (''U'', ''V'') 
 
 	INSERT INTO #TempResult (DATABASE_NAME, SCHEMA_NAME, OBJECT_TYPE, FOREIGN_KEY_NAME, OBJECT_NAME, COLUMN_NAME, DATA_TYPE)
     SELECT DISTINCT
