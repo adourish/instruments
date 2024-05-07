@@ -21,7 +21,7 @@ CREATE TABLE #TempResult
 
 EXEC sp_MSforeachdb '
 USE [?];
-IF DB_ID(''?'') > 4
+IF DB_ID(''?'') > 4 AND DB_NAME() NOT IN (''ReleaseManagement'')
 BEGIN
     INSERT INTO #TempResult
         SELECT DISTINCT
