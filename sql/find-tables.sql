@@ -30,7 +30,7 @@ SET @columnFilter = '%Term%'
 SET @columnFilter2 = '%Condition%'
 SET @columnFilter3 = '%TermTitle%'
 SET @columnFilter4 = '%DisplayText%'
-SET @columnFilter5 = '%DisplayText%'
+SET @columnFilter5 = '%Mapping%'
 SET @includeStoredProcs = 1
 
 CREATE TABLE #TempResult
