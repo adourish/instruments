@@ -6,19 +6,32 @@ IF OBJECT_ID('tempdb..#TableNames') IS NOT NULL
 IF OBJECT_ID('tempdb..#TempResult') IS NOT NULL
     DROP TABLE #TempResult
 
+
 CREATE TABLE #TableNames (TableName NVARCHAR(128))
 DECLARE @columnFilter NVARCHAR(MAX)
 DECLARE @columnFilter2 NVARCHAR(MAX)
 DECLARE @columnFilter3 NVARCHAR(MAX)
 DECLARE @columnFilter4 NVARCHAR(MAX)
+DECLARE @columnFilter5 NVARCHAR(MAX)
+DECLARE @includeStoredProcs BIT
 
-INSERT INTO #TableNames (TableName)
-VALUES ('%Term%'), ('%Conditions%')
+
+INSERT INTO #TableNames (TableName) VALUES 
+-- Terms and Conditions
+('%ConsolidatedTerms%'), ('%ConditionTrackingTermActual%'), ('%GrantTermActuals%'), 
+-- OCC
+('%OCM_OffCycleMemoTermActual_P%'), ('%OCM_OffCycleMemo_P%'), ('%OCM_OffCycleMemo_P%'),
+-- STAR
+('%LU_STAR_ComplianceElement%'), ('%LU_STAR_ProgramRequirement%'), ('%LU_STAR_ProgramRequirement_LU_STAR_ComplianceElement_R%'), ('%STAR_FormComplianceHandbookMappingConfiguration%'), ('%PostAward_TATS_STAR_Compliance%'),
+-- ESV
+('%ESV_SiteVisitReportTermActual_P%'), ('%LU_CMN_ProgramRequirementConsolidatedTermDetail%')
 
 SET @columnFilter = '%Term%'
 SET @columnFilter2 = '%Condition%'
-SET @columnFilter3 = '%grantid%'
-SET @columnFilter4 = '%grantid%'
+SET @columnFilter3 = '%TermTitle%'
+SET @columnFilter4 = '%DisplayText%'
+SET @columnFilter5 = '%DisplayText%'
+SET @includeStoredProcs = 1
 
 CREATE TABLE #TempResult
 (
@@ -35,8 +48,9 @@ CREATE TABLE #TempResult
 
 EXEC sp_MSforeachdb '
 USE [?];
-IF DB_ID(''?'') > 4 AND DB_NAME() NOT IN (''ReleaseManagement'')
+IF DB_ID(''?'') > 4 AND DB_NAME() NOT IN (''ReleaseManagement'',''EHBAdmin'')
 BEGIN
+
     INSERT INTO #TempResult
         SELECT DISTINCT
             ''?'' AS DATABASE_NAME,
@@ -71,19 +85,20 @@ BEGIN
         WHERE 
             o.type IN (''U'', ''V'') 
 
-	INSERT INTO #TempResult (DATABASE_NAME, SCHEMA_NAME, OBJECT_TYPE, FOREIGN_KEY_NAME, OBJECT_NAME, COLUMN_NAME, DATA_TYPE)
+
+    INSERT INTO #TempResult (DATABASE_NAME, SCHEMA_NAME, OBJECT_TYPE, OBJECT_NAME, COLUMN_NAME, DATA_TYPE)
     SELECT DISTINCT
         DB_NAME() as DATABASE_NAME,
 		''NA'' as SCHEMA_NAME,
-		''NA'' as OBJECT_TYPE,
-		''NA'' as FOREIGN_KEY_NAME,
+		r.ROUTINE_DEFINITION as OBJECT_TYPE,
         r.ROUTINE_NAME as OBJECT_NAME,
         r.ROUTINE_TYPE as COLUMN_NAME,
-        r.ROUTINE_DEFINITION as INDEX_NAME
+        r.ROUTINE_DEFINITION as DATA_TYPE
     FROM 
         INFORMATION_SCHEMA.ROUTINES r
 		INNER JOIN
             #TableNames tn ON r.ROUTINE_DEFINITION LIKE tn.TableName
+
 
 
 END
@@ -102,14 +117,17 @@ SELECT * FROM #TempResult
   (OBJECT_TYPE LIKE @columnFilter  OR
   OBJECT_TYPE LIKE @columnFilter2  OR
   OBJECT_TYPE LIKE  @columnFilter3  OR
-  OBJECT_TYPE LIKE @columnFilter4 ))
+  OBJECT_TYPE LIKE @columnFilter4 OR
+  OBJECT_TYPE LIKE @columnFilter5))
   GROUP BY DATABASE_NAME, SCHEMA_NAME, OBJECT_NAME, COLUMN_NAME
 )
 SELECT * FROM CTE
 WHERE (Indexed_Foreign_Key_Columns LIKE  @columnFilter  OR 
 Indexed_Foreign_Key_Columns LIKE @columnFilter2  OR 
 Indexed_Foreign_Key_Columns LIKE  @columnFilter3 OR
-Indexed_Foreign_Key_Columns LIKE  @columnFilter4 )
+Indexed_Foreign_Key_Columns LIKE  @columnFilter4 OR
+Indexed_Foreign_Key_Columns LIKE  @columnFilter5) AND
+(COLUMN_NAME != 'PROCEDURE' AND COLUMN_NAME != 'FUNCTION')
 
 IF OBJECT_ID('tempdb..#TempResult') IS NOT NULL
     DROP TABLE #TempResult
