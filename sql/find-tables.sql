@@ -24,7 +24,10 @@ INSERT INTO #TableNames (TableName) VALUES
 -- STAR
 ('%LU_STAR_ComplianceElement%'), ('%LU_STAR_ProgramRequirement%'), ('%LU_STAR_ProgramRequirement_LU_STAR_ComplianceElement_R%'), ('%STAR_FormComplianceHandbookMappingConfiguration%'), ('%PostAward_TATS_STAR_Compliance%'),
 -- ESV
-('%ESV_SiteVisitReportTermActual_P%'), ('%LU_CMN_ProgramRequirementConsolidatedTermDetail%')
+('%ESV_SiteVisitReportTermActual_P%'), ('%LU_CMN_ProgramRequirementConsolidatedTermDetail%'),
+-- POM
+('%ConditionTrackingTermActual%'), ('%VW_PMM_PAConditionComplianceDetail%')
+
 
 SET @columnFilter = '%Term%'
 SET @columnFilter2 = '%Condition%'
